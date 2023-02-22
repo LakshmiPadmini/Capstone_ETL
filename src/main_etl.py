@@ -10,6 +10,8 @@ credit_data.load_data()
 customer_data = CustomerData(path='../dataset/creditcard_dataset/cdw_sapp_custmer.json')
 customer_data.load_data()
 
+df = branch_data.get_data()
+
 
 
 

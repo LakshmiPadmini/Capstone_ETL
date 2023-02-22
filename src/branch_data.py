@@ -33,3 +33,10 @@ class BranchData:
     def get_data(self):
         return self.df
 
+    def load_database(self,df):
+        self.df.write.format("jdbc").mode("append") \
+            .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
+            .option("dbtable", "creditcard_capstone.CDW_SAPP_BRANCH") \
+            .option("user", "root") \
+            .option("password", "password") \
+            .save()
