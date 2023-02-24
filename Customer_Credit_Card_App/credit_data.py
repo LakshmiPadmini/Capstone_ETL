@@ -9,14 +9,11 @@ class CreditData:
     def __init__(self):
         pass
 
-    def load_data(self):
-        df = self.extract_data()
+    def load_data(self, path, write_to_db=False, mode="append"):
+        df = pd.read_json(path, lines=True)
         df = self.transform_credit_data(df)
-        self.df = df
-        # Load data into
-
-    def extract_credit_data(self):
-        df = pd.read_json("../dataset/creditcard_dataset/cdw_sapp_credit.json", lines=True)
+        if write_to_db:
+            self.write_to_database(df, mode=mode)
         return df
 
     def transform_credit_data(self, df):
@@ -31,4 +28,12 @@ class CreditData:
         spark = SparkSession.builder.appName('SparkByCredit').getOrCreate()
         spark_df = spark.createDataFrame(df)
         return spark_df
+
+    def write_to_database(self, df, mode="append"):
+        df.write.format("jdbc").mode(mode) \
+            .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
+            .option("dbtable", "creditcard_capstone.CDW_SAPP_CREDIT_CARD") \
+            .option("user", "root") \
+            .option("password", "password") \
+            .save()
 
