@@ -8,7 +8,7 @@ import pandas.io.sql as psql
 import pandas as pd
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import to_date, month, year, dayofmonth
-import regex as re
+from pyspark.sql.functions import regexp_replace
 import pyinputplus as pyip
 import warnings
 
@@ -29,7 +29,7 @@ cursor = connection.cursor()
 def transaction_menu_1_1(zipcode=21042, mm=11, yy=2018):
     sql = "SELECT c.CUST_ZIP,c.SSN,cc.CUST_SSN,cc.TRANSACTION_VALUE,cc.TRANSACTION_TYPE,cc.TIMEID FROM " \
           "cdw_sapp_customer c  JOIN cdw_sapp_credit_card cc ON c.SSN=cc.CUST_SSN"
-    cursor.execute(sql)
+    # cursor.execute(sql)
     # result_set = cursor.fetchall()
     data_frame = psql.read_sql(sql, con=connection)
     pd.set_option("display.max_columns", None)
@@ -48,7 +48,7 @@ def transaction_menu_1_1(zipcode=21042, mm=11, yy=2018):
 def transaction_mod2(transaction_type='Bills'):
     sql = "SELECT c.CUST_ZIP,c.SSN,cc.CUST_SSN,cc.TRANSACTION_VALUE,cc.TRANSACTION_TYPE,cc.TIMEID \
            FROM cdw_sapp_customer c  JOIN cdw_sapp_credit_card cc ON c.SSN=cc.CUST_SSN "
-    cursor.execute(sql)
+    # cursor.execute(sql)
     data_frame = psql.read_sql(sql, con=connection)
 
     transaction_type = data_frame[(data_frame['TRANSACTION_TYPE'].str.lower() == transaction_type.lower()) & (data_frame['TRANSACTION_VALUE'])]
@@ -81,26 +81,29 @@ def customer_mod1(ssn=None):
 def customer_mod2(ccn=None):
     sql = "SELECT * FROM cdw_sapp_customer "
     data_frame = psql.read_sql(sql, con=connection)
-    pd.set_option("display.max_columns", None)
+
     spark_df = spark.createDataFrame(data_frame)
     # todo get user input
-    print('Module Two:\n\tModify existing account details of a customer by entering customers credit card number\n')
+    print('Modify existing account details of a customer by entering customers credit card number\n')
     cust_fields = spark_df.select('SSN', 'FIRST_NAME', 'LAST_NAME', 'MIDDLE_NAME', 'CUST_COUNTRY', 'CUST_CITY',
                                   'CUST_EMAIL', 'CUST_PHONE', 'FULL_STREET_ADDRESS', 'CUST_STATE', 'CUST_ZIP',
                                   'CREDIT_CARD_NO').filter(spark_df.CREDIT_CARD_NO == ccn)
     cust_fields.distinct().show()
     # todo ask user what to modify
-    column_name = pyip.inputStr('Enter the name of the column: ')
-    old_value = pyip.inputStr('Enter current value of the column {}: '.format(column_name))
+    column_name = pyip.inputStr('Enter NAME of the column to update: ')
+
+    index = cust_fields.columns.index(column_name)
+    old_value = cust_fields.collect()[0][index]
+    print('Current value of the column {} is {} '.format(column_name, old_value))
     new_value = pyip.inputStr('Enter new value to replace old value: ')
-    cust_fields.withColumn(column_name, re.replace(column_name, old_value, new_value)).distinct() \
-        .show()
+    cust_fields = cust_fields.withColumn(column_name, regexp_replace(column_name, old_value, new_value))
+    cust_fields.show()
 
 
 def customer_mod3(ssn=None, mm=None, yy=None):
     sql = "SELECT * FROM cdw_sapp_credit_card "
     data_frame = psql.read_sql(sql, con=connection)
-    data_frame["TIMEID"] = pd.to_datetime(data_frame["TIMEID"], format='%Y%m%d')
+    # data_frame["TIMEID"] = pd.to_datetime(data_frame["TIMEID"], format='%Y%m%d')
     spark_df = spark.createDataFrame(data_frame)
     spark_df = spark_df.withColumn("TIMEID", to_date("TIMEID", "yyyy-mm-dd"))
     spark_df = spark_df.withColumn("month", month("TIMEID"))
@@ -117,7 +120,7 @@ def customer_mod3(ssn=None, mm=None, yy=None):
     cust_value.agg({'TRANSACTION_VALUE': 'sum'}).show()
 
 
-def customer_mod4():
+def customer_mod4(customer_ssn=None, start_date=None, end_date=None):
     sql = "SELECT * FROM cdw_sapp_credit_card "
     data_frame = psql.read_sql(sql, con=connection)
     pd.set_option("display.max_columns", None)
@@ -129,10 +132,6 @@ def customer_mod4():
     spark_df = spark_df.withColumn("year", year("TIMEID"))
     spark_df = spark_df.withColumn("days", dayofmonth("TIMEID"))
 
-    start_date = 2018 - 3 - 11
-    end_date = 2018 - 12 - 20
-    customer_ssn = 123456698
-
     cust_value = spark_df.select('TIMEID', 'TRANSACTION_TYPE', 'TRANSACTION_VALUE', 'CUST_SSN') \
         .filter(spark_df.CUST_SSN == customer_ssn) \
         .filter((spark_df.TIMEID == start_date) & (spark_df.TIMEID == end_date)) \
@@ -141,6 +140,8 @@ def customer_mod4():
 
 
 def main():
+
+
     while True:
         print("#" * 50)
         print("Customer Transaction Details Menu")
@@ -185,16 +186,18 @@ def main():
                     ssn = pyip.inputStr("Enter Customer SSN: ", max=999999999)
                     customer_mod1(ssn=ssn)
                 elif sub_choice == 2:
-                    ccn = pyip.inputInt("Enter the 9 digit Customer Credit Card Number: ", max=999999999)
+                    ccn = pyip.inputInt("Enter the 16 digit Customer Credit Card Number(4210653369905302): ")
                     customer_mod2(ccn=ccn)
                 elif sub_choice == 3:
-                    ssn = pyip.inputInt("Enter Customer SSN: ",  max=999999999)
-                    mm = pyip.inputInt("Enter Month: ", min=1, max=12)
-                    yy = pyip.inputInt("Enter zipcode: ", min=1900, max=2023)
+                    ssn = pyip.inputInt("Enter Customer SSN (Ex: 123456698): ", max=999999999)
+                    mm = pyip.inputInt("Enter Month (Ex:2018-3-11): ", min=1, max=12)
+                    yy = pyip.inputInt("Enter Year (Ex: 2018-12-20): ", min=1900, max=2023)
                     customer_mod3(ssn=ssn, mm=mm, yy=yy)
                 elif sub_choice == 4:
-                    start_date = pyip.inputDate("Enter the start date: ", )
-                    customer_mod4()
+                    customer_ssn = pyip.inputDate("Enter SSN (Ex: 123456698): ", )
+                    start_date = pyip.inputDate("Enter the start date (Ex:2018-3-11): ", )
+                    end_date = pyip.inputDate("Enter the end date (Ex:2018-12-20): ", )
+                    customer_mod4(customer_ssn=customer_ssn, start_date=start_date, end_date=end_date)
                 else:
                     break
 
@@ -203,6 +206,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    customer_mod3(123456698,12,2018)
+    main()
 
