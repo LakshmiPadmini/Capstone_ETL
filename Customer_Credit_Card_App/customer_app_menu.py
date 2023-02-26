@@ -141,6 +141,9 @@ def customer_mod4(customer_ssn=None, start_date=None, end_date=None):
 
 def main():
 
+    # Load data from sql
+    # Join 3 tables
+
 
     while True:
         print("#" * 50)
