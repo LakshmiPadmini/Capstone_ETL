@@ -61,17 +61,17 @@ CDW_SAPP_BRANCH.JSON: Each branch’s information and details are recorded in th
 mysql << create database creditcard_capstone
 ### Python and Pyspark Program to load/write the “Credit Card System Data” into RDBMS(creditcard_capstone).
 
-1. customer_data.py - Extract,Transform,Load OF Customer Json Format Data Into
+1. **customer_data.py** - Extract,Transform,Load OF Customer Json Format Data Into
                      MySql Database CreditCard_Capstone.
 
-2. credit_data.py - Extract,Transform,Load OF Credit_Card Json Format Data Into
+2. **credit_data.py** - Extract,Transform,Load OF Credit_Card Json Format Data Into
                      MySql Database CreditCard_Capstone.
 
-3. branch_data.py - Extract,Transform,Load OF branch_data Json Format Data Into
+3. **branch_data.py** - Extract,Transform,Load OF branch_data Json Format Data Into
                      MySql Database CreditCard_Capstone.
 
-4. main_etl.py -
-  CDW_SAPP_CUSTOMER**: Table with existing customer details.
+4. **main_etl.py** -
+  CDW_SAPP_CUSTOMER: Table with existing customer details.
   CDW_SAPP_CREDITCARD: Table contains all credit card transaction information.<br>
   CDW_SAPP_BRANCH: Each branch’s information and details are recorded in this Table.
 
