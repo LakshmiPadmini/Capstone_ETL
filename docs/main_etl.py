@@ -7,9 +7,9 @@ warnings.filterwarnings('ignore')
 #
 #
 #
-customer_path = "./dataset/creditcard_dataset/cdw_sapp_custmer.json"
-credit_path = "./dataset/creditcard_dataset/cdw_sapp_credit.json"
-branch_path = "./dataset/creditcard_dataset/cdw_sapp_branch.json"
+customer_path = "../dataset/creditcard_dataset/cdw_sapp_custmer.json"
+credit_path = "../dataset/creditcard_dataset/cdw_sapp_credit.json"
+branch_path = "../dataset/creditcard_dataset/cdw_sapp_branch.json"
 
 credit_data = CreditData()
 credit_df = credit_data.load_data(path=credit_path, write_to_db=True, mode='overwrite')

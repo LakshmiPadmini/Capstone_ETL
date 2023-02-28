@@ -1,2 +1,4 @@
 /.idea/*
+secret.py
 requirements.txt
+./Customer_Credit_Card_App/__pycache__/*

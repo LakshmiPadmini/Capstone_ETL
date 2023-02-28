@@ -5,13 +5,15 @@ findspark.init()
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (IntegerType, TimestampType)
 from pyspark.sql.functions import *
+import secret
 
 
 class BranchData:
     def __init__(e):
         pass
 
-    def load_data(self, path=None,write_to_db=False, mode="append"):
+    # Extract,Transform,Load OF Branch Json Format Data Into MySql Database CreditCard_Capstone.
+    def load_data(self, path=None, write_to_db=False, mode="append"):
         spark = SparkSession.builder.appName('SparkByBranch').getOrCreate()
         df = spark.read.json(path)
         df = self.transform_branch_data(df)
@@ -31,6 +33,6 @@ class BranchData:
         df.write.format("jdbc").mode(mode) \
             .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone") \
             .option("dbtable", "creditcard_capstone.CDW_SAPP_BRANCH") \
-            .option("user", "root") \
-            .option("password", "password") \
+            .option("user", secret.user) \
+            .option("password", secret.password) \
             .save()

@@ -1,17 +1,18 @@
+from datetime import datetime
+
 import findspark
 
-
 findspark.init()
-
 import pymysql
 import pandas.io.sql as psql
 import pandas as pd
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import to_date, month, year, dayofmonth
 from pyspark.sql.functions import regexp_replace
 import pyinputplus as pyip
 import warnings
+import secret
 
+# Menu Driven Program For Customer and Transaction Modules.
 warnings.filterwarnings('ignore')
 
 pd.set_option("display.max_columns", None)
@@ -19,13 +20,12 @@ spark = SparkSession.builder.master("local[1]").appName('Credit_card.com').getOr
 
 connection = pymysql.connect(
     host='localhost',
-    user='root',
-    password='password',
+    user=secret.user,
+    password=secret.password,
     database='creditcard_capstone'
 )
 cursor = connection.cursor()
-
-
+# Transaction Modules
 def transaction_menu_1_1(zipcode=21042, mm=11, yy=2018):
     sql = "SELECT c.CUST_ZIP,c.SSN,cc.CUST_SSN,cc.TRANSACTION_VALUE,cc.TRANSACTION_TYPE,cc.TIMEID FROM " \
           "cdw_sapp_customer c  JOIN cdw_sapp_credit_card cc ON c.SSN=cc.CUST_SSN"
@@ -51,7 +51,8 @@ def transaction_mod2(transaction_type='Bills'):
     # cursor.execute(sql)
     data_frame = psql.read_sql(sql, con=connection)
 
-    transaction_type = data_frame[(data_frame['TRANSACTION_TYPE'].str.lower() == transaction_type.lower()) & (data_frame['TRANSACTION_VALUE'])]
+    transaction_type = data_frame[
+        (data_frame['TRANSACTION_TYPE'].str.lower() == transaction_type.lower()) & (data_frame['TRANSACTION_VALUE'])]
     transaction_df = transaction_type.groupby('TRANSACTION_TYPE').agg(count=('TRANSACTION_TYPE', 'count'),
                                                                       value=('TRANSACTION_VALUE', 'sum'))
     transaction_df['value'] = round(transaction_df['value'], 2)
@@ -59,7 +60,7 @@ def transaction_mod2(transaction_type='Bills'):
 
 
 # transaction_mod2()
-def transaction_mod3(branch_state = 'PA'):
+def transaction_mod3(branch_state='PA'):
     sql = "SELECT bc.BRANCH_CODE,bc.BRANCH_STATE,cc.TRANSACTION_VALUE,cc.TRANSACTION_TYPE,cc.BRANCH_CODE \
                FROM cdw_sapp_branch bc JOIN cdw_sapp_credit_card cc ON bc.BRANCH_CODE=cc.BRANCH_CODE"
     data_frame = psql.read_sql(sql, con=connection)
@@ -69,6 +70,7 @@ def transaction_mod3(branch_state = 'PA'):
     print(trans_by_branch_state)
 
 
+# Customer Modules
 def customer_mod1(ssn=None):
     sql = "SELECT * FROM cdw_sapp_customer "
     data_frame = psql.read_sql(sql, con=connection)
@@ -103,46 +105,26 @@ def customer_mod2(ccn=None):
 def customer_mod3(ssn=None, mm=None, yy=None):
     sql = "SELECT * FROM cdw_sapp_credit_card "
     data_frame = psql.read_sql(sql, con=connection)
-    # data_frame["TIMEID"] = pd.to_datetime(data_frame["TIMEID"], format='%Y%m%d')
-    spark_df = spark.createDataFrame(data_frame)
-    spark_df = spark_df.withColumn("TIMEID", to_date("TIMEID", "yyyy-mm-dd"))
-    spark_df = spark_df.withColumn("month", month("TIMEID"))
-    spark_df = spark_df.withColumn("year", year("TIMEID"))
-    spark_df = spark_df.withColumn("days", dayofmonth("TIMEID"))
-
-    # todo get user input
-    print('Module Three:\n\tGenerate a monthly bill for a credit card number for a given month and year')
-    cust_value = spark_df.select('CUST_SSN', 'TIMEID', 'TRANSACTION_TYPE',
-                                 'TRANSACTION_VALUE').filter(spark_df.CUST_SSN == ssn). \
-        filter((spark_df.month == mm) & (spark_df.year == yy))
-    cust_value.show()
-    print('Credit Card Statement for Month:{} Year:{} '.format(mm, yy))
-    cust_value.agg({'TRANSACTION_VALUE': 'sum'}).show()
+    data_frame["TIMEID"] = pd.to_datetime(data_frame["TIMEID"], format='%Y%m%d')
+    data_frame = data_frame[(data_frame['TIMEID'].dt.month == mm)
+                            & (data_frame['TIMEID'].dt.year == yy)
+                            & (data_frame["CUST_SSN"] == ssn) ]
+    result = data_frame.groupby("CUST_SSN")["TRANSACTION_VALUE"].sum()
+    print('Credit Card Statement for Month:{} Year:{} monthly bill {} '.format(mm, yy, round(result[ssn], 2)))
 
 
 def customer_mod4(customer_ssn=None, start_date=None, end_date=None):
     sql = "SELECT * FROM cdw_sapp_credit_card "
     data_frame = psql.read_sql(sql, con=connection)
-    pd.set_option("display.max_columns", None)
-
+    start = datetime.strptime(start_date, "%Y/%m/%d")
+    end = datetime.strptime(end_date, "%Y/%m/%d")
     data_frame["TIMEID"] = pd.to_datetime(data_frame["TIMEID"], format='%Y%m%d')
-    spark_df = spark.createDataFrame(data_frame)
-    spark_df = spark_df.withColumn("TIMEID", to_date("TIMEID", "yyyy-mm-dd"))
-    spark_df = spark_df.withColumn("month", month("TIMEID"))
-    spark_df = spark_df.withColumn("year", year("TIMEID"))
-    spark_df = spark_df.withColumn("days", dayofmonth("TIMEID"))
 
-    cust_value = spark_df.select('TIMEID', 'TRANSACTION_TYPE', 'TRANSACTION_VALUE', 'CUST_SSN') \
-        .filter(spark_df.CUST_SSN == customer_ssn) \
-        .filter((spark_df.TIMEID == start_date) & (spark_df.TIMEID == end_date)) \
-        .orderBy(year(spark_df.TIMEID).desc(), month(spark_df.TIMEID).desc(), dayofmonth(spark_df.TIMEID).desc())
-    cust_value.show()
+    data_frame = data_frame[ (data_frame['TIMEID'].between(start, end)) & (data_frame['CUST_SSN'] == customer_ssn)]
+    print(data_frame.head())
 
 
 def main():
-
-    # Load data from sql
-    # Join 3 tables
 
 
     while True:
@@ -157,9 +139,11 @@ def main():
         if choice == 1:
             while True:
                 print("\nSelect an option from the sub_menu.")
-                print("1.The transactions made by customers living in a given zip code for a given month and year. Order by day in descending order.")
+                print("1.The transactions made by customers living in a given zip code for"
+                      " a given month and year. Order by day in descending order.")
                 print("2.The number and total values of transactions for a given type")
-                print("3.The total number and total values of transactions for branches in a given state.")
+                print("3.The total number and total values of transactions for branches"
+                      " in a given state.")
                 print("4.Quit")
                 sub_choice = pyip.inputInt("Select an option to check the transaction details: ", min=1, max=4)
                 if sub_choice == 1:
@@ -178,10 +162,10 @@ def main():
         elif choice == 2:
             while True:
                 print("\nSelect an option from the sub_menu.")
-                print("1.Used to check the existing account details of a customer.")
-                print("2.Used to modify the existing account details of a customer.")
-                print("3.Used to generate a monthly bill for a credit card number for a given month and year.")
-                print("4.Used to display the transactions made by a customer between two dates. Order by year, month, "
+                print("1.To check the existing account details of a customer.")
+                print("2.To modify the existing account details of a customer.")
+                print("3.To generate a monthly bill for a credit card number for a given month and year.")
+                print("4.To display the transactions made by a customer between two dates. Order by year, month, "
                       "and day in descending order.")
                 print("5.Quit")
                 sub_choice = pyip.inputInt("Select an option to Get the Customer details: ", min=1, max=5)
@@ -193,13 +177,13 @@ def main():
                     customer_mod2(ccn=ccn)
                 elif sub_choice == 3:
                     ssn = pyip.inputInt("Enter Customer SSN (Ex: 123456698): ", max=999999999)
-                    mm = pyip.inputInt("Enter Month (Ex:2018-3-11): ", min=1, max=12)
-                    yy = pyip.inputInt("Enter Year (Ex: 2018-12-20): ", min=1900, max=2023)
+                    mm = pyip.inputInt("Enter Month (Ex:3): ", min=1, max=12)
+                    yy = pyip.inputInt("Enter Year (Ex: 2018): ", min=1900, max=2023)
                     customer_mod3(ssn=ssn, mm=mm, yy=yy)
                 elif sub_choice == 4:
-                    customer_ssn = pyip.inputDate("Enter SSN (Ex: 123456698): ", )
-                    start_date = pyip.inputDate("Enter the start date (Ex:2018-3-11): ", )
-                    end_date = pyip.inputDate("Enter the end date (Ex:2018-12-20): ", )
+                    customer_ssn = pyip.inputInt("Enter SSN (Ex: 123456698): ", )
+                    start_date = pyip.inputDate("Enter the start date (Ex:2018/3/11): ", )
+                    end_date = pyip.inputDate("Enter the end date (Ex:2018/12/20): ", )
                     customer_mod4(customer_ssn=customer_ssn, start_date=start_date, end_date=end_date)
                 else:
                     break
@@ -210,4 +194,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

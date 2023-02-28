@@ -54,7 +54,6 @@ def plot_highest_transactions(df):
     plt.rcParams["figure.figsize"] = [8, 5]
     plt.rcParams["figure.autolayout"] = True
     x = ['May', 'Oct', 'Dec']
-    # y = [196568.87,201086.67,196488.59,194203.25,201310.26,195468.74,201199.35,196453.41,196069.44,202583.89,200549.36,201251.08]
     default_x_ticks = range(len(x))
     plt.plot(default_x_ticks, df_months['TRANSACTION_VALUE'], ls='-', c='g', lw='3', marker='o')
     plt.title('Top Three Months With Highest Number Of Transactions')

@@ -23,7 +23,7 @@ pp(data)
 rdd = spark.sparkContext.parallelize(data)
 df = rdd.toDF()
 df.show()
-df.write.format("jdbc").mode("append")\
+df.write.format("jdbc").mode("overwrite")\
         .option("url", "jdbc:mysql://localhost:3306/creditcard_capstone")\
         .option("dbtable", "creditcard_capstone.CDW_SAPP_loan_application")\
         .option("user", "root")\
