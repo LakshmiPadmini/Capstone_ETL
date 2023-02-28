@@ -3,10 +3,10 @@
 This capstone project is to manage an ETL process for a Loan Application dataset and 
 a Credit Card dataset. 
 
-Credit Card System: The Credit Card System database is an independent system developed for managing activities such as 
+**Credit Card System**: The Credit Card System database is an independent system developed for managing activities such as 
 registering new customers and approving or canceling requests, etc., using the architecture.
 
-Loan Application: Banks deal in all home loans. They have a presence across all urban, semi-urban,and rural areas.
+**Loan Application**: Banks deal in all home loans. They have a presence across all urban, semi-urban,and rural areas.
 Customers first apply for a home loan; after that, a company will validate the customer's eligibility
 for a loan.
 ## Architecture
@@ -37,7 +37,7 @@ Necessary dependencies before running this application:
 * pip install pymysql
 * pip install requests
 
-## Technologies
+### Technologies
 Language: Python 3.9.12
 Database:MariaDB and HeidiSQL for GUI
 Libraries used in python:
@@ -47,7 +47,7 @@ Seaborn
 requests
 Apache Spark(Spark Core,Spark Sql)
 
-## Business Requirements - ETL
+### Business Requirements - ETL
 A credit card is issued to users to enact the payment system. It allows the 
 cardholder to access financial services in exchange for the holder's promise to pay 
 for them later. Below are three files that contain the customer’s transaction information 
@@ -57,7 +57,7 @@ CDW_SAPP_CUSTOMER.JSON: This file has the existing customer details.
 CDW_SAPP_CREDITCARD.JSON: This file contains all credit card transaction information.
 CDW_SAPP_BRANCH.JSON: Each branch’s information and details are recorded in this file.
 
-## Load Credit Card Database (SQL)
+### Load Credit Card Database (SQL)
 mysql << create database creditcard_capstone
 ### Python and Pyspark Program to load/write the “Credit Card System Data” into RDBMS(creditcard_capstone).
 
@@ -114,7 +114,7 @@ transactions.
 
 ![healthcare.png](docs%2Fhealthcare.png)
 
-## LOAN application Data API
+# LOAN application Data API
 
 Banks want to automate the loan eligibility process (in real-time) based on customer details provided while
 filling out the online application form. These details are Gender, Marital Status, Education, 
@@ -123,13 +123,13 @@ they have the task of identifying the customer segments to those who are eligibl
 so that they can specifically target these customers. Here they have provided a partial dataset.
 
 API Endpoint: https://raw.githubusercontent.com/platformps/LoanDataset/main/loan_data.json
-#Python and Pyspark Program to load/write the “Loan Application Data” into 
-RDBMS(creditcard_capstone).
+## Python and Pyspark Program to load/write the “Loan Application Data” into 
+RDBMS (creditcard_capstone)
 1. Loan_API.py - Python program to GET (consume) data from the above API endpoint for the loan application 
                  dataset with the status code 200.
 
-CDW_SAPP_loan_application: Table with  customer home loans details.
-#Data analysis and Visualization
+**CDW_SAPP_loan_application**: Table with  customer home loans details.
+## Data analysis and Visualization
 1.Find and plot the percentage of applications approved for self-employed applicants.
 
 ![applications_approved.png](docs%2Fapplications_approved.png)
@@ -139,8 +139,7 @@ CDW_SAPP_loan_application: Table with  customer home loans details.
 ![male_married_1.png](docs%2Fmale_married_1.png)
 ![male_married_2.png](docs%2Fmale_married_2.png)
 
-## Tableau
-## Loan Application Analysis using Tableau
+## Tableau - Loan Application Analysis using Tableau
 
 ![tableau.png](docs%2Ftableau.png)
 
