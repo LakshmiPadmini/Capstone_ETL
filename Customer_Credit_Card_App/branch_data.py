@@ -5,7 +5,7 @@ findspark.init()
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (IntegerType, TimestampType)
 from pyspark.sql.functions import *
-import secret
+from utils import secret
 
 
 class BranchData:

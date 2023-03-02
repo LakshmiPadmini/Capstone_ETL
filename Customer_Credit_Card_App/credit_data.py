@@ -1,6 +1,6 @@
 import findspark
 
-import secret
+from utils import secret
 
 findspark.init()
 from pyspark.sql import SparkSession

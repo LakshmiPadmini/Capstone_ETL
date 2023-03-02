@@ -1,7 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (StringType, IntegerType, TimestampType)
 from pyspark.sql.functions import *
-import secret
+from utils import secret
 
 
 class CustomerData:

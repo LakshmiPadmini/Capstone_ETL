@@ -131,13 +131,13 @@ RDBMS (creditcard_capstone)
 **CDW_SAPP_loan_application**: Table with  customer home loans details.
 ## Data analysis and Visualization
 1.Find and plot the percentage of applications approved for self-employed applicants.
+![percentage_self_employed.png](docs%2Fpercentage_self_employed.png)
 
-![applications_approved.png](docs%2Fapplications_approved.png)
 
 2.Find the percentage of rejection for married male applicants.
 
 ![male_married_1.png](docs%2Fmale_married_1.png)
-![male_married_2.png](docs%2Fmale_married_2.png)
+![percentage_male_applicants.png](docs%2Fpercentage_male_applicants.png)
 
 ## Tableau - Loan Application Analysis using Tableau
 

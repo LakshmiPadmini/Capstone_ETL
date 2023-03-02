@@ -1,6 +1,7 @@
-from datetime import datetime
+
 
 import findspark
+
 
 findspark.init()
 import pymysql
@@ -9,8 +10,10 @@ import pandas as pd
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import regexp_replace
 import pyinputplus as pyip
+from datetime import datetime
 import warnings
 import secret
+
 
 # Menu Driven Program For Customer and Transaction Modules.
 warnings.filterwarnings('ignore')
@@ -64,7 +67,7 @@ def transaction_mod3(branch_state='PA'):
     sql = "SELECT bc.BRANCH_CODE,bc.BRANCH_STATE,cc.TRANSACTION_VALUE,cc.TRANSACTION_TYPE,cc.BRANCH_CODE \
                FROM cdw_sapp_branch bc JOIN cdw_sapp_credit_card cc ON bc.BRANCH_CODE=cc.BRANCH_CODE"
     data_frame = psql.read_sql(sql, con=connection)
-    branch_transaction = data_frame[(data_frame['BRANCH_STATE'] == branch_state) & (data_frame['TRANSACTION_VALUE'])]
+    branch_transaction = data_frame[(data_frame['BRANCH_STATE'].str.lower() == branch_state.lower()) & (data_frame['TRANSACTION_VALUE'])]
     trans_by_branch_state = branch_transaction.groupby(['BRANCH_STATE']).agg(
         total_transactions=('TRANSACTION_VALUE', 'sum'))
     print(trans_by_branch_state)
@@ -121,11 +124,10 @@ def customer_mod4(customer_ssn=None, start_date=None, end_date=None):
     data_frame["TIMEID"] = pd.to_datetime(data_frame["TIMEID"], format='%Y%m%d')
 
     data_frame = data_frame[ (data_frame['TIMEID'].between(start, end)) & (data_frame['CUST_SSN'] == customer_ssn)]
-    print(data_frame.head())
+    print(data_frame[['TRANSACTION_TYPE', 'TRANSACTION_VALUE', 'TIMEID']])
 
 
 def main():
-
 
     while True:
         print("#" * 50)
@@ -170,7 +172,7 @@ def main():
                 print("5.Quit")
                 sub_choice = pyip.inputInt("Select an option to Get the Customer details: ", min=1, max=5)
                 if sub_choice == 1:
-                    ssn = pyip.inputStr("Enter Customer SSN: ", max=999999999)
+                    ssn = pyip.inputInt("Enter Customer SSN(Ex: 123456698): ", max=999999999)
                     customer_mod1(ssn=ssn)
                 elif sub_choice == 2:
                     ccn = pyip.inputInt("Enter the 16 digit Customer Credit Card Number(4210653369905302): ")
@@ -182,8 +184,8 @@ def main():
                     customer_mod3(ssn=ssn, mm=mm, yy=yy)
                 elif sub_choice == 4:
                     customer_ssn = pyip.inputInt("Enter SSN (Ex: 123456698): ", )
-                    start_date = pyip.inputDate("Enter the start date (Ex:2018/3/11): ", )
-                    end_date = pyip.inputDate("Enter the end date (Ex:2018/12/20): ", )
+                    start_date = pyip.inputStr("Enter the start date (Ex:2018/3/11): ", )
+                    end_date = pyip.inputStr("Enter the end date (Ex:2018/12/20): ", )
                     customer_mod4(customer_ssn=customer_ssn, start_date=start_date, end_date=end_date)
                 else:
                     break

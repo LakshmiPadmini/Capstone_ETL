@@ -25,7 +25,7 @@ def plot_self_employed(df):
     data_api = df.groupby(['Self_Employed', 'Application_Status'])['Application_ID'].count()
     data_api = data_api.reset_index()
     total_applications = len(df)
-    data_api = data_api[(data_api['Application_Status'] == 'Y') & (data_api['Self_Employed'] == 'Yes')]
+    #data_api = data_api[(data_api['Application_Status'] == 'Y') & (data_api['Self_Employed'] == 'Yes')]
     print(data_api)
     data_api['Count_Percent'] = data_api['Application_ID'] / total_applications * 100
     print("Percentage of applications approved for self-employed applicants: ", data_api['Count_Percent'])
@@ -44,7 +44,7 @@ def plot_married_applicants(df):
     df_maarried_male = df_maarried_male.reset_index()
     print(df_maarried_male)
     total_applications = len(df)
-    df_maarried_male = df_maarried_male[(df_maarried_male['Married'] == 'Yes') & (df_maarried_male['Application_Status'] == 'N' ) & (df_maarried_male['Gender'] == 'Male')]
+    #df_maarried_male = df_maarried_male[(df_maarried_male['Married'] == 'Yes') & (df_maarried_male['Application_Status'] == 'N' ) & (df_maarried_male['Gender'] == 'Male')]
     df_maarried_male['Count_Percent'] = df_maarried_male['Application_ID']/total_applications * 100
     #df_maarried_male
     sns.set(rc={"figure.figsize":(4,6)})
